@@ -175,6 +175,9 @@ ai-agent/
 │   │   ├── locales/
 │   │   │   └── en.json              # English strings (add more locales here)
 │   │   └── __tests__/
+│   ├── components/
+│   │   ├── atoms/                   # Minimal, indivisible UI elements
+│   │   └── molecules/               # Compositions of atoms with own logic
 │   ├── styles/
 │   │   ├── _base.scss               # Base plugin styles (BEM)
 │   │   └── _variables.scss          # Obsidian CSS variable documentation
@@ -258,6 +261,33 @@ const title = t?.("settings.title") ?? "Settings";
 3. Keep the command `id` short and lowercase (no "command" suffix — ESLint rule)
 4. Keep the command `name` in sentence case (no "command" suffix — ESLint rule)
 
+### Adding New Components (Atomic Design)
+
+The `app/components/` directory follows **Atomic Design** with two levels:
+
+**Atoms** (`app/components/atoms/`) — The smallest, indivisible UI unit:
+- A single DOM element with one responsibility
+- No business logic, presentation only
+- Configurable via parameters (label, CSS class, callback)
+- Example: a button, an icon, a text label
+
+**Molecules** (`app/components/molecules/`) — Compositions of atoms forming a functional unit:
+- Combine 2+ atoms into a component with its own meaning
+- May contain internal interaction logic
+- Reusable across multiple features
+- Example: a setting row (label + toggle), a search bar (input + icon + button)
+
+**Rules:**
+- Build DOM exclusively with `createEl()`, `createDiv()`, `createSpan()` — never `innerHTML`
+- Style via CSS classes and Obsidian variables, never inline
+- Atoms must not import from molecules (dependency flows downward only)
+- Co-located tests in `__tests__/`
+
+1. **Atom**: Create `app/components/atoms/[AtomName].ts` — single responsibility, no business logic
+2. **Molecule**: Create `app/components/molecules/[MoleculeName].ts` — compose existing atoms
+3. Write tests in the corresponding `__tests__/` directory
+4. Import directly: `import { MyAtom } from "@app/components/atoms/MyAtom"` (no barrel file)
+
 ### Adding New Utilities
 
 1. Create a pure function module in `app/utils/[UtilName].ts`
@@ -319,6 +349,7 @@ collectCoverageFrom: [
 **❌ DO NOT use barrel files for:**
 
 - Features (import directly from specific files)
+- Components (import directly from `@app/components/atoms/Button` or `@app/components/molecules/SearchBar`)
 - Utils (import directly from `@app/utils/ExampleUtils`)
 - Types (import directly from `@app/types/PluginTypes`)
 - Services (import directly from specific service files)
